@@ -5,19 +5,24 @@ import textwrap
 from collections import defaultdict
 
 # ==============================
-# إعداد الصفحة + CSS
+# إعداد الصفحة
 # ==============================
 st.set_page_config(
-    page_title="مساعد علّمني لمراجعة الحقائب التدريبية (تقييم تلقائي بدون API)",
+    page_title="مساعد علّمني – تقييم تلقائي للحقائب التدريبية",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
+# ==============================
+# CSS مع دعم RTL + شكل جذاب
+# ==============================
 CUSTOM_CSS = """
 <style>
 html, body, [class*="css"] {
     font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    direction: rtl;              /* اتجاه الصفحة يمين → يسار */
+    text-align: right;           /* محاذاة النص يمين */
 }
 
 /* حاوية المحتوى */
@@ -26,37 +31,64 @@ html, body, [class*="css"] {
     padding-bottom: 2.2rem;
     padding-left: 2.5rem;
     padding-right: 2.5rem;
-    background: #f3f4f6;
+    background: radial-gradient(circle at top left, #e0f2fe 0, #f3f4f6 40%, #eef2ff 100%);
     border-radius: 24px;
 }
 
-/* ترويسة */
+/* ترويسة علوية جذابة */
 .header-card {
-    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    background: linear-gradient(135deg, #1d4ed8, #4f46e5);
     color: #f9fafb;
     padding: 1.4rem 1.8rem;
     border-radius: 18px;
-    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.35);
-    margin-bottom: 1.2rem;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.45);
+    margin-bottom: 1.4rem;
+    position: relative;
+    overflow: hidden;
+}
+.header-card::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: -60px;
+    inset-block-start: -80px;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(248,250,252,0.25), transparent 70%);
+    opacity: 0.8;
 }
 .header-title {
-    font-size: 1.7rem;
+    font-size: 1.8rem;
     font-weight: 800;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.3rem;
 }
 .header-subtitle {
-    font-size: 0.96rem;
-    opacity: 0.95;
+    font-size: 0.98rem;
+    opacity: 0.96;
+}
+.header-chip-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+    justify-content: flex-start;
+}
+.header-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.16rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.35);
+    font-size: 0.72rem;
 }
 
-/* كارت */
+/* كروت رئيسية */
 .card {
     background: #ffffff;
     border-radius: 18px;
     padding: 1.2rem 1.3rem;
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.07);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
     border: 1px solid rgba(148, 163, 184, 0.25);
-    margin-bottom: 1rem;
+    margin-bottom: 1.1rem;
 }
 
 /* عنونة صغيرة */
@@ -78,11 +110,12 @@ html, body, [class*="css"] {
 /* Textarea */
 textarea, .stTextArea textarea {
     border-radius: 12px !important;
+    text-align: right !important;
 }
 
 /* سايدبار */
 [data-testid="stSidebar"] {
-    background: #0b1120 !important;
+    background: #020617 !important;
 }
 .sidebar-title {
     font-size: 1.1rem;
@@ -95,30 +128,65 @@ textarea, .stTextArea textarea {
     color: #9ca3af;
     margin-bottom: 0.9rem;
 }
+.sidebar-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.16rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.2);
+    color: #bfdbfe;
+    font-size: 0.72rem;
+    margin-bottom: 0.45rem;
+}
 .sidebar-footer {
     font-size: 0.75rem;
     color: #6b7280;
     margin-top: 1rem;
 }
 
-/* أزرار */
+/* أزرار عامة */
 .stButton > button {
     border-radius: 999px !important;
-    padding: 0.6rem 1.4rem !important;
+    padding: 0.6rem 1.5rem !important;
     font-size: 0.95rem !important;
     font-weight: 600 !important;
     border: none !important;
     cursor: pointer !important;
-    transition: 0.2s ease-in-out !important;
+    transition: 0.18s ease-in-out !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 .primary-btn button {
     background-color: #2563eb !important;
     color: #ffffff !important;
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45) !important;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.5) !important;
 }
 .primary-btn button:hover {
     background-color: #1e40af !important;
+    transform: translateY(-2px) scale(1.01) !important;
+}
+.secondary-btn button {
+    background-color: #e5e7eb !important;
+    color: #111827 !important;
+}
+.secondary-btn button:hover {
+    background-color: #d1d5db !important;
     transform: translateY(-2px) !important;
+}
+
+/* tabs من اليمين */
+.stTabs [data-baseweb="tab-list"] {
+    flex-direction: row-reverse;
+}
+.stTabs [data-baseweb="tab"] p {
+    font-size: 0.9rem;
+}
+
+/* expander heading rtl */
+details > summary > p {
+    text-align: right;
 }
 </style>
 """
@@ -128,16 +196,26 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 # سايدبار
 # ==============================
 with st.sidebar:
-    st.markdown('<div class="sidebar-title">مؤسسة علّمني للتعليم والتدريب</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-badge">⚙️ تقييم آلي</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-title">مساعد علّمني للحقائب التدريبية</div>', unsafe_allow_html=True)
     st.markdown(
         '<div class="sidebar-subtitle">'
-        'تقييم تلقائي للحقائب التدريبية باستخدام قواعد تحليل نصية داخلية، بدون أي API خارجي أو كلفة مالية.'
+        'أداة داخلية تحلل الحقيبة تدريبية بالكامل باستخدام قواعد نصية ثابتة؛ بدون أي API خارجي، '
+        'وبشكل يضمن ثبات النتائج وعدم التحيّز.'
         '</div>',
         unsafe_allow_html=True,
     )
     st.markdown("---")
+    st.markdown("**طريقة الاستخدام:**")
+    st.write(
+        "1. ارفع ملف الحقيبة (PDF أو DOCX).\n"
+        "2. اضغط «استخراج النص».\n"
+        "3. اضغط «بدء التحليل التلقائي».\n"
+        "4. استعرض التقرير داخل التبويبات."
+    )
+    st.markdown("---")
     st.markdown(
-        '<div class="sidebar-footer">الإصدار 1.0 – نموذج أولي للتقييم الآلي وفق إطار جودة علّمني.</div>',
+        '<div class="sidebar-footer">الإصدار 1.0 – نموذج أولي لتقييم الجودة داخل مؤسسة علّمني.</div>',
         unsafe_allow_html=True,
     )
 
@@ -147,11 +225,16 @@ with st.sidebar:
 st.markdown(
     """
     <div class="header-card">
-        <div class="header-title">🎓 مساعد علّمني – تقييم تلقائي للحقائب التدريبية (بدون API)</div>
+        <div class="header-chip-row">
+            <div class="header-chip">🎓 تدريب</div>
+            <div class="header-chip">🤖 تقييم تلقائي</div>
+            <div class="header-chip">بدون API</div>
+        </div>
+        <div class="header-title">مساعد علّمني – تقييم تلقائي للحقائب التدريبية</div>
         <div class="header-subtitle">
-            ارفع الحقيبة التدريبية كاملة، وسيقوم النظام بتحليل النص تلقائيًا
-            والبحث عن مؤشرات الجودة في جميع الصفحات، ثم يصدر تقريرًا تفاعليًا
-            يوضح الدرجات لكل مجال ونقاط القوة والفجوات مع أمثلة من الحقيبة.
+            ارفع الحقيبة التعليمية كاملة، وسيقوم النظام بتحليل النص آليًا
+            والبحث عن مؤشرات الجودة في كل الصفحات، ثم يقدم لك تقريرًا تفاعليًا
+            يوضح درجات كل مجال ونقاط القوة والفجوات مع أمثلة من الحقيبة.
         </div>
     </div>
     """,
@@ -179,7 +262,6 @@ def read_docx(uploaded_file):
     text = "\n".join(paragraphs).strip()
     words = len(text.split())
     pages_est = max(1, words // 600)
-    # نضيف فواصل صفحات تقديرية
     return text, pages_est
 
 
@@ -192,13 +274,13 @@ if "manual_stats" not in st.session_state:
 # كارت رفع الحقيبة
 # ==============================
 st.markdown('<div class="card">', unsafe_allow_html=True)
-st.markdown('<div class="section-label">Upload</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-label">رفع الحقيبة</div>', unsafe_allow_html=True)
 st.markdown("### 📁 رفع الحقيبة واستخراج النص")
 
 uploaded_file = st.file_uploader(
     "اختر ملف الحقيبة التدريبية (PDF أو DOCX)",
     type=["pdf", "docx"],
-    help="يمكنك رفع الحقيبة كاملة حتى لو كانت 200 صفحة أو أكثر.",
+    help="يمكنك رفع الحقيبة كاملة حتى لو كانت ٢٠٠ صفحة أو أكثر.",
 )
 
 col_u1, col_u2 = st.columns([0.5, 0.5])
@@ -208,7 +290,7 @@ with col_u1:
     st.markdown("</div>", unsafe_allow_html=True)
 
 with col_u2:
-    show_text = st.checkbox("عرض النص المستخرج لمراجعته (اختياري)", value=False)
+    show_text = st.checkbox("📄 عرض النص المستخرج (اختياري)")
 
 if extract_btn:
     if uploaded_file is None:
@@ -222,22 +304,19 @@ if extract_btn:
 
             st.session_state["manual_text"] = text
             words = len(text.split())
-            st.session_state["manual_stats"] = {
-                "pages": pages,
-                "words": words,
-            }
-            st.success(f"تم استخراج النص بنجاح. عدد الصفحات (فعلي/تقديري): {pages} – عدد الكلمات: {words:,}")
+            st.session_state["manual_stats"] = {"pages": pages, "words": words}
+            st.success(f"تم استخراج النص بنجاح ✅ عدد الصفحات (فعلي/تقديري): {pages} – عدد الكلمات: {words:,}")
         except Exception as e:
             st.error(f"حدث خطأ أثناء قراءة الملف: {e}")
 
 if show_text and st.session_state["manual_text"]:
-    st.markdown("#### 📄 النص المستخرج من الحقيبة")
+    st.markdown("#### النص المستخرج من الحقيبة")
     st.text_area(
         "",
         value=st.session_state["manual_text"],
-        height=220,
         key="manual_text_area",
-        help="يمكنك تعديل النص يدويًا إذا رغبت.",
+        height=220,
+        help="يمكنك تعديل النص يدويًا إذا رغبت؛ التحليل الآلي سيتم على النص الظاهر هنا.",
     )
     st.session_state["manual_text"] = st.session_state["manual_text_area"]
 
@@ -252,8 +331,6 @@ st.markdown("</div>", unsafe_allow_html=True)
 # ==============================
 # معايير التقييم القاعدية (Rule-based)
 # ==============================
-
-# لكل مؤشر: كلمات مفتاحية وأحيانًا تعبيرات بسيطة
 INDICATORS = [
     {
         "domain": "المجال الأول: الأهداف",
@@ -322,7 +399,7 @@ INDICATORS = [
     },
     {
         "domain": "المجال الخامس: التقويم",
-        "title": "تنوع أدوات التقييم (اختبارات، ملاحظة، استبيانات…) ",
+        "title": "تنوع أدوات التقييم (اختبارات، ملاحظة، استبيانات…)",
         "keywords": ["اختبار", "استبانة", "استبيان", "بطاقة ملاحظة", "أداة تقييم"],
     },
     {
@@ -343,7 +420,6 @@ SCORE_LABELS = {
 # دوال التحليل القاعدي
 # ==============================
 def find_keyword_matches(text, keyword, window=80):
-    """ترجع أمثلة مقتطفة حول الكلمة المفتاحية داخل النص."""
     matches = []
     start = 0
     while True:
@@ -355,14 +431,13 @@ def find_keyword_matches(text, keyword, window=80):
         snippet = text[snippet_start:snippet_end].replace("\n", " ")
         matches.append(snippet.strip())
         start = idx + len(keyword)
-        if len(matches) >= 5:  # نكتفي بعدد معقول من الأمثلة
+        if len(matches) >= 5:
             break
     return matches
 
 
 def score_indicator(text, indicator):
-    """يعطي درجة 0–3 لكل مؤشر حسب عدد الكلمات المفتاحية والأمثلة."""
-    text_norm = text  # ممكن لاحقا نضيف تنظيف (حذف تشكيل/مسافات...)
+    text_norm = text
     total_matches = 0
     all_snippets = []
 
@@ -380,15 +455,15 @@ def score_indicator(text, indicator):
     else:
         score = 3
 
-    explanation_parts = []
     if total_matches == 0:
-        explanation_parts.append("لم يتم العثور على عبارات واضحة تشير إلى هذا المؤشر في نص الحقيبة.")
+        explanation = "لم يتم العثور على عبارات واضحة تشير إلى هذا المؤشر في نص الحقيبة."
     else:
-        explanation_parts.append(f"تم العثور على حوالي {total_matches} موضع/مواضع تحتوي على عبارات مرتبطة بالمؤشر.")
+        explanation = (
+            f"تم العثور على حوالي {total_matches} موضع تحتوي على عبارات مرتبطة بالمؤشر. "
+        )
         if score >= 2:
-            explanation_parts.append("تتوزع هذه العبارات في أكثر من جزء من الحقيبة، مما يشير إلى حضور جيد لهذا المؤشر.")
+            explanation += "تتوزع هذه العبارات في أكثر من جزء من الحقيبة، مما يشير إلى حضور جيد لهذا المؤشر."
 
-    explanation = " ".join(explanation_parts)
     return {
         "score": score,
         "score_label": SCORE_LABELS[score],
@@ -399,14 +474,10 @@ def score_indicator(text, indicator):
 
 
 def analyze_manual(text):
-    """يحلل النص الكامل للحقيبة ويعيد بنية منظمة للتقرير."""
     domains = defaultdict(list)
     for ind in INDICATORS:
         result = score_indicator(text, ind)
-        domains[ind["domain"]].append({
-            "title": ind["title"],
-            **result,
-        })
+        domains[ind["domain"]].append({"title": ind["title"], **result})
 
     domain_summaries = []
     for domain_name, items in domains.items():
@@ -414,13 +485,11 @@ def analyze_manual(text):
         avg = sum(scores) / len(scores) if scores else 0
         domain_summaries.append((domain_name, avg, items))
 
-    # حساب متوسط كلي
     if domain_summaries:
         overall = sum(d[1] for d in domain_summaries) / len(domain_summaries)
     else:
         overall = 0.0
 
-    # ملخص تنفيذي بسيط حسب الدرجة
     if overall >= 2.5:
         overall_msg = "الحقيبة تحقق معظم معايير الجودة بدرجة عالية، مع بعض فرص التحسين المحددة في المجالات المختلفة."
     elif overall >= 1.5:
@@ -435,14 +504,14 @@ def analyze_manual(text):
     }
 
 # ==============================
-# زر التحليل التلقائي والتقرير التفاعلي
+# زر التحليل التلقائي والتقرير
 # ==============================
 st.markdown('<div class="card">', unsafe_allow_html=True)
-st.markdown('<div class="section-label">Auto review</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-label">التحليل الآلي</div>', unsafe_allow_html=True)
 st.markdown("### 🤖 تحليل تلقائي وإصدار تقرير تفاعلي")
 
 st.markdown(
-    '<div class="help-text">سيتم تحليل النص كاملًا باستخدام قواعد نصية ثابتة؛ نفس الحقيبة ستحصل دائمًا على نفس التقييم لضمان عدم التحيّز.</div>',
+    '<div class="help-text">سيتم تحليل النص كاملًا باستخدام قواعد نصية ثابتة؛ نفس الحقيبة ستحصل دائمًا على نفس التقييم لضمان العدالة وعدم التحيّز.</div>',
     unsafe_allow_html=True,
 )
 
@@ -454,16 +523,14 @@ report_container = st.container()
 
 if analyze_btn:
     if not st.session_state["manual_text"].strip():
-        st.warning("من فضلك ارفع الحقيبة واضغط على زر استخراج النص أولًا.")
+        st.warning("من فضلك ارفع الحقيبة واضغط على «استخراج النص» أولًا.")
     else:
         with st.spinner("⏳ جاري تحليل النص الكامل للحقيبة وفق معايير الجودة..."):
             analysis = analyze_manual(st.session_state["manual_text"])
 
         with report_container:
-            # تبويبات للتقرير
             tab1, tab2 = st.tabs(["🔍 الملخص التنفيذي", "📊 التقييم التفصيلي حسب المجالات"])
 
-            # ملخص
             with tab1:
                 st.subheader("🔍 ملخص عام لجودة الحقيبة")
                 st.write(analysis["overall_message"])
@@ -475,7 +542,6 @@ if analyze_btn:
                     st.write(f"- عدد الصفحات (فعلي/تقديري): {stats.get('pages', 'غير متاح')}")
                     st.write(f"- عدد الكلمات التقريبية: {stats.get('words', 'غير متاح')}")
 
-            # المجالات
             with tab2:
                 st.subheader("📊 التقييم التفصيلي للمجالات والمؤشرات")
                 for domain_name, avg, items in analysis["domains"]:
@@ -487,7 +553,7 @@ if analyze_btn:
                             if it["examples"]:
                                 st.markdown("**📌 أمثلة من نص الحقيبة:**")
                                 for ex in it["examples"]:
-                                    wrapped = textwrap.fill(ex, width=90)
+                                    wrapped = textwrap.fill(ex, width=88)
                                     st.markdown(f"> {wrapped}")
                             else:
                                 st.markdown("**📌 أمثلة من نص الحقيبة:** لم يتم العثور على أمثلة صريحة لهذا المؤشر.")
