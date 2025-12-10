@@ -45,7 +45,7 @@ FIXED_CRITERIA = """
 
 # ---------- إعداد الصفحة العامة ----------
 st.set_page_config(
-    page_title="مساعد فريق التصميم التعليمي لتقييم الأدلة والحقائب التدريبية",
+    page_title="مساعد علّمني لمراجعة الحقائب التدريبية",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -54,7 +54,7 @@ st.set_page_config(
 # ---------- تنسيقات CSS مخصصة ----------
 CUSTOM_CSS = """
 <style>
-/* خلفية خفيفة للمحتوى */
+/* خلفية المحتوى الرئيسي */
 .main .block-container {
     padding-top: 1.5rem;
     padding-bottom: 2.5rem;
@@ -64,7 +64,7 @@ CUSTOM_CSS = """
     border-radius: 24px;
 }
 
-/* ترويسة جميلة */
+/* ترويسة */
 .header-card {
     background: linear-gradient(135deg, #1e3a8a, #2563eb);
     color: #f9fafb;
@@ -83,7 +83,7 @@ CUSTOM_CSS = """
     opacity: 0.95;
 }
 
-/* كروت الأقسام */
+/* كروت */
 .card {
     background: #ffffff;
     border-radius: 18px;
@@ -97,7 +97,7 @@ CUSTOM_CSS = """
     margin-bottom: 0.4rem;
 }
 
-/* عناوين فرعية */
+/* عناوين فرعية صغيرة */
 .section-label {
     font-size: 0.8rem;
     font-weight: 700;
@@ -107,49 +107,51 @@ CUSTOM_CSS = """
     margin-bottom: 0.1rem;
 }
 
-/* أزرار */
-.stButton > button {
-    border-radius: 999px;
-    padding: 0.45rem 1.3rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.30);
-    transition: all 0.12s ease-in-out;
-}
-.stButton > button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 14px 30px rgba(37, 99, 235, 0.45);
-}
-
-/* زر primary و secondary بالألوان */
-.primary-btn > button {
-    background: #2563eb !important;
-    color: #f9fafb !important;
-}
-.secondary-btn > button {
-    background: #e5e7eb !important;
-    color: #111827 !important;
-    box-shadow: none !important;
-}
-.secondary-btn > button:hover {
-    background: #d1d5db !important;
-}
-
-/* نص مساعدة صغير */
+/* نص مساعدة */
 .help-text {
     font-size: 0.78rem;
     color: #6b7280;
 }
 
-/* صندوق النصوص */
+/* أزرار عامة */
+.stButton > button {
+    border-radius: 12px !important;
+    padding: 0.6rem 1.3rem !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: 0.2s ease-in-out !important;
+}
+
+/* زر رئيسي */
+.primary-btn button {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.35) !important;
+}
+.primary-btn button:hover {
+    background-color: #1e40af !important;
+    transform: translateY(-2px) !important;
+}
+
+/* زر ثانوي */
+.secondary-btn button {
+    background-color: #e5e7eb !important;
+    color: #111827 !important;
+}
+.secondary-btn button:hover {
+    background-color: #d1d5db !important;
+    transform: translateY(-2px) !important;
+}
+
+/* حقول النص */
 textarea, .stTextArea textarea {
     border-radius: 12px !important;
 }
 
 /* سايدبار */
-.css-1d391kg, .st-emotion-cache-1d391kg {
+[data-testid="stSidebar"] {
     background: #0f172a !important;
 }
 .sidebar-title {
@@ -179,7 +181,6 @@ textarea, .stTextArea textarea {
 }
 </style>
 """
-
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 # ---------- سايدبار: هوية المؤسسة ----------
@@ -235,7 +236,7 @@ def read_docx(uploaded_file) -> str:
     paragraphs = [p.text for p in document.paragraphs if p.text.strip()]
     return "\n".join(paragraphs).strip()
 
-# ضمان وجود حالة للنص المستخرج
+# حالة النص المستخرج
 if "extracted_text" not in st.session_state:
     st.session_state["extracted_text"] = ""
 
@@ -265,7 +266,7 @@ with col_left:
         help="يفضّل استخدام ملفات PDF نصية أو DOCX. لو PDF عبارة عن صور فقط، ستحتاج لتحويله إلى نص باستخدام أداة OCR.",
     )
 
-    col_btn1, col_btn2 = st.columns([0.5, 1])
+    col_btn1, _ = st.columns([0.5, 0.5])
     with col_btn1:
         btn_convert = st.button("📥 تحويل الملف إلى نص / تحديث النص")
 
@@ -295,7 +296,7 @@ with col_left:
     )
 
     st.markdown(
-        '<div class="help-text">*كل ما كان نص الحقيبة أوضح وأكثر تنظيمًا، كانت دقة تقرير المراجعة أفضل.</div>',
+        '<div class="help-text">*كلما كان نص الحقيبة أوضح وأكثر تنظيمًا، كانت دقة تقرير المراجعة أفضل.</div>',
         unsafe_allow_html=True,
     )
     st.markdown("</div>", unsafe_allow_html=True)
@@ -406,16 +407,14 @@ st.markdown("### 🧠 توليد البرومبت / تقرير التقييم")
 col_a, col_b, col_c = st.columns([0.32, 0.32, 0.36])
 
 with col_a:
-    with st.container():
-        st.markdown('<div class="primary-btn">', unsafe_allow_html=True)
-        generate_report_btn = st.button("🤖 توليد تقرير التقييم عبر OpenAI")
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="primary-btn">', unsafe_allow_html=True)
+    generate_report_btn = st.button("🤖 توليد تقرير التقييم عبر OpenAI")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 with col_b:
-    with st.container():
-        st.markdown('<div class="secondary-btn">', unsafe_allow_html=True)
-        generate_prompt_btn = st.button("📝 توليد البرومبت فقط (للاستخدام اليدوي)")
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="secondary-btn">', unsafe_allow_html=True)
+    generate_prompt_btn = st.button("📝 توليد البرومبت فقط (للاستخدام اليدوي)")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 with col_c:
     st.markdown(
