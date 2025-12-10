@@ -8,7 +8,7 @@ from collections import defaultdict
 # إعداد الصفحة + CSS
 # ==============================
 st.set_page_config(
-    page_title="مساعد علّمني لمراجعة الحقائب التدريبية (تقييم تلقائي بدون API)",
+    page_title="مساعد علّمني لمراجعة الحقائب التدريبية ",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded",
